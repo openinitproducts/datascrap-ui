@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient as createSSRClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 // Create Supabase client for server-side usage
@@ -23,7 +24,7 @@ export function createServerClient() {
 export async function createServerComponentClient() {
   const cookieStore = await cookies()
 
-  return createClient(
+  return createSSRClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
