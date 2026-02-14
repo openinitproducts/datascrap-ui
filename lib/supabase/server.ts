@@ -32,6 +32,20 @@ export async function createServerComponentClient() {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {
+            // Handle cookie setting errors (e.g., in Server Actions)
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch (error) {
+            // Handle cookie removal errors
+          }
+        },
       },
     }
   )
