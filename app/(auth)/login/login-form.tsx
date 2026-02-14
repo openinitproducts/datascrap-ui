@@ -20,16 +20,19 @@ export function LoginForm() {
 
     try {
       const result = await signIn(formData)
+      console.log('Login result:', result)
 
       if (result?.error) {
+        console.error('Login error:', result.error)
         setError(result.error)
         setIsLoading(false)
       } else if (result?.success) {
-        // Successfully signed in, redirect to dashboard
-        router.push('/dashboard')
-        router.refresh()
+        // Successfully signed in, use hard redirect
+        console.log('Login successful, redirecting...')
+        window.location.href = '/dashboard'
       }
     } catch (error) {
+      console.error('Login exception:', error)
       setError('An unexpected error occurred. Please try again.')
       setIsLoading(false)
     }
