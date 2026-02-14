@@ -75,26 +75,54 @@ function DigestCard({
 }
 
 async function DigestsContent() {
-  // TODO: Fetch actual digests from Supabase
-  const digests: any[] = []
+  // Fetch actual digests from backend API
+  try {
+    const { digestsService } = await import('@/lib/api/services')
+    const { digests, total } = await digestsService.list({
+      page: 1,
+      page_size: 50,
+    })
 
-  if (digests.length === 0) {
+    if (digests.length === 0) {
+      return (
+        <EmptyState
+          icon={FileText}
+          title="No digests yet"
+          description="Your AI-generated content digests will appear here. Add some sources to get started."
+        />
+      )
+    }
+
     return (
-      <EmptyState
-        icon={FileText}
-        title="No digests yet"
-        description="Your AI-generated content digests will appear here. Add some sources to get started."
-      />
+      <div className="space-y-4">
+        {digests.map((digest) => (
+          <DigestCard
+            key={digest.id}
+            digest={{
+              id: digest.id,
+              title: digest.title,
+              createdAt: new Date(digest.created_at).toLocaleDateString(),
+              articleCount: digest.article_count,
+              status: digest.status as 'sent' | 'pending' | 'draft',
+              deliveryMethod: digest.delivery_method === 'email' ? 'email' : 'notion',
+            }}
+          />
+        ))}
+      </div>
+    )
+  } catch (error) {
+    console.error('Error fetching digests:', error)
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30">
+        <h3 className="text-lg font-semibold text-red-900 dark:text-red-50">
+          Error Loading Digests
+        </h3>
+        <p className="mt-2 text-red-700 dark:text-red-300">
+          Failed to load your digests. Please try refreshing the page.
+        </p>
+      </div>
     )
   }
-
-  return (
-    <div className="space-y-4">
-      {digests.map((digest) => (
-        <DigestCard key={digest.id} digest={digest} />
-      ))}
-    </div>
-  )
 }
 
 export default async function DigestsPage() {

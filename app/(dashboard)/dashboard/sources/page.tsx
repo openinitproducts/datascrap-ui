@@ -79,32 +79,63 @@ function SourceCard({
 }
 
 async function SourcesContent() {
-  // TODO: Fetch actual sources from Supabase
-  const sources: any[] = []
+  // Fetch actual sources from backend API
+  try {
+    const { sourcesService } = await import('@/lib/api/services')
+    const { sources, total } = await sourcesService.list({
+      page: 1,
+      page_size: 50,
+    })
 
-  if (sources.length === 0) {
+    if (sources.length === 0) {
+      return (
+        <EmptyState
+          icon={Rss}
+          title="No sources yet"
+          description="Add your first source to start generating content digests. You can add websites, blogs, or RSS feeds."
+          action={{
+            label: 'Add Source',
+            onClick: () => {
+              // This will be handled by the Link component instead
+            },
+          }}
+        />
+      )
+    }
+
     return (
-      <EmptyState
-        icon={Rss}
-        title="No sources yet"
-        description="Add your first source to start generating content digests. You can add websites, blogs, or RSS feeds."
-        action={{
-          label: 'Add Source',
-          onClick: () => {
-            // This will be handled by the Link component instead
-          },
-        }}
-      />
+      <div className="space-y-4">
+        {sources.map((source) => (
+          <SourceCard
+            key={source.id}
+            source={{
+              id: source.id,
+              name: source.name,
+              url: source.url,
+              type: source.type,
+              status: source.status,
+              articlesCount: source.articles_count,
+              lastScraped: source.last_scraped_at
+                ? new Date(source.last_scraped_at).toLocaleDateString()
+                : 'Never',
+            }}
+          />
+        ))}
+      </div>
+    )
+  } catch (error) {
+    console.error('Error fetching sources:', error)
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30">
+        <h3 className="text-lg font-semibold text-red-900 dark:text-red-50">
+          Error Loading Sources
+        </h3>
+        <p className="mt-2 text-red-700 dark:text-red-300">
+          Failed to load your sources. Please try refreshing the page.
+        </p>
+      </div>
     )
   }
-
-  return (
-    <div className="space-y-4">
-      {sources.map((source) => (
-        <SourceCard key={source.id} source={source} />
-      ))}
-    </div>
-  )
 }
 
 export default async function SourcesPage() {

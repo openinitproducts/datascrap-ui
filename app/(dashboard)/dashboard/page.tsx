@@ -95,69 +95,96 @@ function QuickActions() {
 }
 
 async function DashboardContent() {
-  // TODO: Fetch actual data from Supabase
-  const stats = {
-    sources: 0,
-    digests: 0,
-    articles: 0,
-  }
+  // Fetch real data from backend API
+  try {
+    const [sourcesRes, digestsRes, articlesStats] = await Promise.all([
+      import('@/lib/api/services').then((m) => m.sourcesService.list({ page: 1, page_size: 1 })),
+      import('@/lib/api/services').then((m) => m.digestsService.list({ page: 1, page_size: 1 })),
+      import('@/lib/api/services').then((m) => m.articlesService.getStats()),
+    ])
 
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-          Dashboard
-        </h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Welcome back! Here's an overview of your content digests.
-        </p>
-      </div>
+    const stats = {
+      sources: sourcesRes.total,
+      digests: digestsRes.total,
+      articles: articlesStats.total || 0,
+    }
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <StatCard icon={Rss} label="Active Sources" value={stats.sources} />
-        <StatCard
-          icon={FileText}
-          label="Digests Generated"
-          value={stats.digests}
-        />
-        <StatCard
-          icon={FileText}
-          label="Articles Processed"
-          value={stats.articles}
-        />
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RecentActivity />
-        </div>
+    return (
+      <div className="space-y-8">
+        {/* Header */}
         <div>
-          <QuickActions />
-        </div>
-      </div>
-
-      {/* Getting Started */}
-      {stats.sources === 0 && (
-        <div className="rounded-lg border border-primary-200 bg-primary-50 p-6 dark:border-primary-900 dark:bg-primary-950/30">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-            Get Started with DataScrap
-          </h3>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+            Dashboard
+          </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Add your first source to start generating AI-powered content digests.
+            Welcome back! Here's an overview of your content digests.
           </p>
-          <Button asChild className="mt-4">
-            <Link href="/dashboard/sources/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Your First Source
-            </Link>
-          </Button>
         </div>
-      )}
-    </div>
-  )
+
+        {/* Stats Grid */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <StatCard icon={Rss} label="Active Sources" value={stats.sources} />
+          <StatCard
+            icon={FileText}
+            label="Digests Generated"
+            value={stats.digests}
+          />
+          <StatCard
+            icon={FileText}
+            label="Articles Processed"
+            value={stats.articles}
+          />
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <RecentActivity />
+          </div>
+          <div>
+            <QuickActions />
+          </div>
+        </div>
+
+        {/* Getting Started */}
+        {stats.sources === 0 && (
+          <div className="rounded-lg border border-primary-200 bg-primary-50 p-6 dark:border-primary-900 dark:bg-primary-950/30">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+              Get Started with DataScrap
+            </h3>
+            <p className="mt-2 text-slate-600 dark:text-slate-400">
+              Add your first source to start generating AI-powered content digests.
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/dashboard/sources/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Your First Source
+              </Link>
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  } catch (error) {
+    console.error('Error loading dashboard:', error)
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-red-600 dark:text-red-400">
+            Failed to load dashboard data. Please try again later.
+          </p>
+        </div>
+        <EmptyState
+          icon={FileText}
+          title="Error loading dashboard"
+          description="We couldn't load your dashboard data. Please refresh the page or contact support if the problem persists."
+        />
+      </div>
+    )
+  }
 }
 
 export default async function DashboardPage() {

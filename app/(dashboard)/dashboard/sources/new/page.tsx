@@ -24,16 +24,23 @@ export default function NewSourcePage() {
     const type = formData.get('type') as 'website' | 'rss'
 
     try {
-      // TODO: Implement actual source creation
-      console.log('Creating source:', { name, url, type })
+      // Import and call the API service
+      const { sourcesService, SourceType, SourceStatus } = await import('@/lib/api/services')
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await sourcesService.create({
+        name,
+        url,
+        type: type === 'rss' ? SourceType.RSS : SourceType.WEBSITE,
+        status: SourceStatus.ACTIVE,
+        scrape_frequency: 3600, // 1 hour
+      })
 
-      // Redirect to sources list
+      // Redirect to sources list on success
       router.push('/dashboard/sources')
-    } catch (err) {
-      setError('Failed to create source. Please try again.')
+      router.refresh()
+    } catch (err: any) {
+      console.error('Error creating source:', err)
+      setError(err.message || 'Failed to create source. Please try again.')
       setIsLoading(false)
     }
   }

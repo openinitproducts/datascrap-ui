@@ -74,26 +74,123 @@ function ArticleListItem({
 }
 
 async function ArticlesContent() {
-  // TODO: Fetch actual articles from Supabase
-  const articles: any[] = []
+  // Fetch actual articles from backend API
+  try {
+    const { articlesService } = await import('@/lib/api/services')
+    const { articles, total } = await articlesService.list({
+      page: 1,
+      page_size: 20,
+    })
 
-  if (articles.length === 0) {
+    if (articles.length === 0) {
+      return (
+        <EmptyState
+          icon={FileText}
+          title="No articles yet"
+          description="Articles scraped from your sources will appear here. Add sources to start collecting content."
+        />
+      )
+    }
+
     return (
-      <EmptyState
-        icon={FileText}
-        title="No articles yet"
-        description="Articles scraped from your sources will appear here. Add sources to start collecting content."
-      />
+      <div className="space-y-4">
+        {articles.map((article) => (
+          <ArticleListItem
+            key={article.id}
+            article={{
+              id: article.id,
+              title: article.title,
+              url: article.url,
+              source: article.source_id || 'Unknown',
+              excerpt: article.excerpt || '',
+              summary: article.summary || '',
+              scrapedAt: new Date(article.scraped_at).toLocaleDateString(),
+              readTime: 5, // Placeholder read time
+            }}
+          />
+        ))}
+      </div>
+    )
+  } catch (error) {
+    console.error('Error fetching articles:', error)
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30">
+        <h3 className="text-lg font-semibold text-red-900 dark:text-red-50">
+          Error Loading Articles
+        </h3>
+        <p className="mt-2 text-red-700 dark:text-red-300">
+          Failed to load your articles. Please try refreshing the page.
+        </p>
+      </div>
     )
   }
+}
 
-  return (
-    <div className="space-y-4">
-      {articles.map((article) => (
-        <ArticleListItem key={article.id} article={article} />
-      ))}
-    </div>
-  )
+// New component for article stats
+async function ArticleStats() {
+  try {
+    const { articlesService } = await import('@/lib/api/services')
+    const stats = await articlesService.getStats()
+
+    return (
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Total Articles
+          </p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
+            {stats.total || 0}
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Last 7 Days
+          </p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
+            {stats.last_7_days || 0}
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Last 30 Days
+          </p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
+            {stats.last_30_days || 0}
+          </p>
+        </div>
+      </div>
+    )
+  } catch (error) {
+    console.error('Error fetching article stats:', error)
+    return (
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Total Articles
+          </p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
+            0
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Last 7 Days
+          </p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
+            0
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Last 30 Days
+          </p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
+            0
+          </p>
+        </div>
+      </div>
+    )
+  }
 }
 
 export default async function ArticlesPage() {
@@ -142,32 +239,15 @@ export default async function ArticlesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Total Articles
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
-            0
-          </p>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            This Week
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
-            0
-          </p>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            This Month
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-50">
-            0
-          </p>
-        </div>
-      </div>
+      <Suspense
+        fallback={
+          <div className="grid gap-4 sm:grid-cols-3">
+            <LoadingSpinner size="sm" text="Loading stats..." />
+          </div>
+        }
+      >
+        <ArticleStats />
+      </Suspense>
 
       {/* Articles List */}
       <Suspense fallback={<LoadingSpinner size="lg" text="Loading articles..." />}>
