@@ -18,14 +18,20 @@ export function LoginForm() {
     setIsLoading(true)
     setError(null)
 
-    const result = await signIn(formData)
+    try {
+      const result = await signIn(formData)
 
-    if (result?.error) {
-      setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+        setIsLoading(false)
+      } else if (result?.success) {
+        // Successfully signed in, redirect to dashboard
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.')
       setIsLoading(false)
-    } else {
-      // Redirect happens in signIn action
-      router.push('/dashboard')
     }
   }
 
